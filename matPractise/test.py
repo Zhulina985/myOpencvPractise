@@ -2,7 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-img=cv2.imread("resource/3c1.jpg",cv2.CV_16F) #读取图片，第二个为显示类型
+img=cv2.imread("resource/3c1.jpg",0) #读取图片，第二个为显示类型
 
 
 def first():
@@ -48,4 +48,5 @@ def draw():
     plt.title("result"), plt.xticks([]), plt.yticks([])
     plt.show()
     cv2.waitKey(0)
-draw()
+
+
