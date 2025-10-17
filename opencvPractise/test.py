@@ -197,4 +197,42 @@ def hat():
 
     cv.waitKey(0)
 
-hat()
+#图像平滑
+#噪声处理：椒盐和高斯噪声
+#椒盐：黑白点
+#高斯：噪声满足高斯公式(正态分布)
+
+#均值滤波:算法较快，但细节保留度差，马赛克
+#高斯滤波：通过创建权重矩阵，通过正态分布分配权重，计算得到高斯模糊的值
+#中值滤波：同意邻域内像素点中值替代原灰度值，主要作用于椒盐噪声（极端的黑白点被中值替代）
+def average_gao_mid_noise():
+    img=cv.imread("resource/and.jpg",1)
+    blur1=cv.blur(img,(10,10))    #创建卷积核
+    blur2=cv.GaussianBlur(img,(9,9),1)  #权重矩阵需要中心点，所以必须为奇数
+    blur3=cv.medianBlur(img,3)  #因为是中值，所以卷积核就一个数
+    cv.imshow('blur1',blur1)
+    cv.imshow('blur2',blur2)
+    cv.imshow('blur3',blur3)
+    cv.imshow('img',img)
+    cv.waitKey(0)
+
+
+#直方图和掩膜学习
+#直方图
+def histogram():
+    img=cv.imread("resource/and.jpg",0) #以计算灰度直方图为例，传入灰度图像
+    hist=cv.calcHist([img],[0],None,[256],[0,256])  #参数要中括号，0为灰度直方图，掩膜，BIN数目，范围大小
+
+    plt.plot(hist)
+
+    plt.grid()  #图像网格添加
+    plt.show()
+
+
+
+histogram()
+
+
+
+
+
