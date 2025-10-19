@@ -229,10 +229,77 @@ def histogram():
     plt.show()
 
 
+#掩膜:直方图中的mask参数
+#对遮挡区域不处理。遮挡过程为掩膜
+#用二维矩阵进行掩膜
+#相当于选取区域
+def mask():
+    img=cv.imread("resource/and.jpg",0)
+    mask1=np.zeros(img.shape[:2],np.uint8)  #确定蒙版
+    mask1[400:650,200:500]=1                #设置区域参数，高400-600 宽200-500
 
-histogram()
+    mask_img=cv.bitwise_and(img,img,mask=mask1) #传入图片和蒙版(进行与操作)
+    mask_histr=cv.calcHist([img],[0],mask1,[256],[0,256])   #绘制直方图，掩膜存在mask=mask1
+
+    fig,axes=plt.subplots(2,2)
+    axes[0,0].imshow(img,cmap='gray')
+    axes[0,0].set_title('original')
+    axes[0,1].imshow(mask1,cmap='gray')
+    axes[0,1].set_title('mask')
+    axes[1,0].imshow(mask_img,cmap='gray')
+    axes[1,0].set_title('mask image')
+    axes[1,1].plot(mask_histr)
+    axes[1,1].grid(True)
+    axes[1,1].set_title('histogram')
+    plt.show()
+
+#直方图均衡化
+#将直方图进行横向拉升，扩大像素的分发区域，提高对比度
+
+def average_histogram():
+    img=cv.imread("resource/and.jpg",0)
+    hist=cv.equalizeHist(img)   #均衡化后得到图像
+
+    hist1=cv.calcHist([img],[0],None,[256],[0,256])
+    hist2=cv.calcHist([hist],[0],None,[256],[0,256])
+
+    fig,axes=plt.subplots(2,2)
+    axes[0,0].imshow(img,cmap='gray')
+    axes[0,0].set_title('original')
+    axes[0,1].imshow(hist,cmap='gray')
+    axes[0,1].set_title('histogram')
+    axes[1,0].plot(hist1)
+    axes[1,0].grid(True)
+    axes[1,0].set_title('average histogram')
+    axes[1,1].plot(hist2)
+    axes[1,1].grid(True)
+    axes[1,1].set_title('average histogram')
+
+    plt.show()
+
+#自适应直方图均衡化
+#均衡化后，直方图可能会过曝或过暗，所以要进行分块处理
+#设定灰度限制并用起进行补充
+def auto_average_histogram():
+    img=cv.imread("resource/and.jpg",0)
+    clahe=cv.createCLAHE(clipLimit=1, tileGridSize=(8,8))   #输入限制和分块参数，创建一个自动化对象
+    img1=clahe.apply(img)       #进行应用
+
+    hist1=cv.calcHist([img],[0],None,[256],[0,256])
+    hist2=cv.calcHist([img1],[0],None,[256],[0,256])
+
+    fig,axes=plt.subplots(2,2)
+    axes[0,0].imshow(img,cmap='gray')
+    axes[0,0].set_title('original')
+    axes[0,1].imshow(img1,cmap='gray')
+    axes[0,1].set_title('histogram')
+    axes[1,0].plot(hist1)
+    axes[1,0].grid(True)
+    axes[1,0].set_title('average histogram')
+    axes[1,1].plot(hist2)
+    axes[1,1].grid(True)
+    axes[1,1].set_title('average histogram')
+    plt.show()
 
 
-
-
-
+auto_average_histogram()
