@@ -302,4 +302,65 @@ def auto_average_histogram():
     plt.show()
 
 
-auto_average_histogram()
+#边缘检测
+#利用各算子进行检测轮廓，其中核心为导数
+#sobel算子，求一阶导数
+def sobel():
+    img=cv.imread("resource/and.jpg",0)
+    x=cv.Sobel(img,cv.CV_64F,1,0)       #利用算子，对x,y方向各进行检测，得到两张(类似高位反差保留)
+    y=cv.Sobel(img,cv.CV_64F,0,1)       #图像，图像深度，x,y方向
+
+    x1 = cv.Sobel(img, cv.CV_64F, 1, 0,ksize=-1)    #ksize设为-1，利用的是scharr算子
+    y1 = cv.Sobel(img, cv.CV_64F, 0, 1,ksize=-1)
+
+    sobel_x=cv.convertScaleAbs(x)               #格式转化,得到8位图
+    sobel_y=cv.convertScaleAbs(y)
+
+    sobel_x1=cv.convertScaleAbs(x1)
+    sobel_y1=cv.convertScaleAbs(y1)
+
+    result=cv.addWeighted(sobel_x,0.5,sobel_y,0.5,0)            #利用权重函数，进行图像的融合，x,y方向各取0.5,得到边缘检测结果
+    result1=cv.addWeighted(sobel_x1,0.5,sobel_y1,0.5,0)
+
+
+
+    fig,axes=plt.subplots(1,3)
+    axes[0].imshow(sobel_x,cmap='gray')
+    axes[0].set_title('original')
+    axes[1].imshow(sobel_y,cmap='gray')
+    axes[1].set_title('result')
+    axes[2].imshow(result1,cmap='gray')
+    axes[2].set_title('result1')
+
+    plt.show()
+
+#拉普拉斯算子
+#对导数进行二阶求导
+#相较于sobel算子，边界更加深度，像素更少
+def laplacian():
+    img=cv.imread("resource/and.jpg",0)
+    result=cv.Laplacian(img,cv.CV_64F)  #利用拉普拉斯函数进行检测
+    la_abs=cv.convertScaleAbs(result)   #格式转换，转成8位类型
+
+    fig,axes=plt.subplots(1,2)
+    axes[0].imshow(img,cmap='gray')
+    axes[0].set_title('original')
+    axes[1].imshow(la_abs,cmap='gray')
+    axes[1].set_title('result')
+    plt.show()
+
+#canny边缘检测
+#四步法，核心通过最大梯度来判断是否为边界
+def canny():
+    img=cv.imread("resource/and.jpg",0)
+    result=cv.Canny(img,100,100)    #canny函数,阈值1：连接间断边缘  阈值2：检测明显边缘
+
+    fig,axes=plt.subplots(1,2)
+    axes[0].imshow(img,cmap='gray')
+    axes[0].set_title('original')
+    axes[1].imshow(result,cmap='gray')
+    axes[1].set_title('result')
+    plt.show()
+
+canny()
+
