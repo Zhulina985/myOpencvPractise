@@ -362,5 +362,51 @@ def canny():
     axes[1].set_title('result')
     plt.show()
 
-canny()
 
+#模板匹配
+#通过一张图片，在另一张图片上面寻找匹配的区域
+def match():
+    img=cv.imread("resource/and.jpg")       #需要匹配的图片
+    template=cv.imread("resource/and1.jpg") #匹配模板
+    h,w,l=template.shape                    #得到模板的长宽和深度
+
+    res=cv.matchTemplate(img,template,cv.TM_CCOEFF)     #通过match方法进行匹配，最后参数为匹配实现算法
+    a,b,c,d=cv.minMaxLoc(res)                           #得到结果区域
+
+    print(a,b,c,d)
+
+    top_left=d      #d为左上角图像，已它为基准
+    bottom_right=(top_left[0]+w,top_left[1]+h)  #加上模板的长宽得到右下角左边
+    print(top_left,bottom_right)
+    cv.rectangle(img,top_left,bottom_right,(0,255,0),3) #绘制图像
+    cv.rectangle(img,d,c,(0,0,255),2)
+    plt.imshow(img[:,:,::-1])
+    plt.title("res"),plt.xticks([]),plt.yticks([]) #不显示x,y抽数据
+
+    plt.show()
+
+
+#霍夫变换
+#先变为2值图像，或先进行边缘检测
+def hungarian():
+    img=cv.imread("resource/huo.png")
+    res=cv.Canny(img,50,100)
+
+    lines=cv.HoughLines(res,1,np.pi/180,150)
+    for line in lines:
+        rho,theta=line[0]
+        a=np.cos(theta)
+        b=np.sin(theta)
+        x0=a*rho
+        y0=b*rho
+        x1=int(x0+1000*(-b))
+        y1=int(y0+1000*(a))
+        x2=int(x0-1000*(-b))
+        y2=int(y0-1000*(a))
+        cv.line(img,(x1,y1),(x2,y2),(255,0,0),2)
+
+    plt.figure(figsize=(10,8),dpi=80)
+    plt.imshow(img,cmap='gray')
+    plt.show()
+
+hungarian()
