@@ -387,26 +387,67 @@ def match():
 
 
 #霍夫变换
+
+
+#线检测
 #先变为2值图像，或先进行边缘检测
 def hungarian():
     img=cv.imread("resource/huo.png")
-    res=cv.Canny(img,50,100)
+    res=cv.Canny(img,50,100)        #进行Canny边缘检测
 
-    lines=cv.HoughLines(res,1,np.pi/180,150)
-    for line in lines:
-        rho,theta=line[0]
-        a=np.cos(theta)
+    lines=cv.HoughLines(res,1,np.pi/180,150)        #霍夫线检测
+                                                                  #需要检测边缘，传入极坐标参数，以及检测参数
+    for line in lines:              #极坐标的参数和图像
+        rho,theta=line[0]           #遍历所有直线
+        a=np.cos(theta)             #通过cos和sin进行转化
         b=np.sin(theta)
         x0=a*rho
         y0=b*rho
-        x1=int(x0+1000*(-b))
+        x1=int(x0+1000*(-b))            #转变参数，转变为笛卡尔坐标系
         y1=int(y0+1000*(a))
         x2=int(x0-1000*(-b))
-        y2=int(y0-1000*(a))
+        y2=int(y0-1000*(a))             #
         cv.line(img,(x1,y1),(x2,y2),(255,0,0),2)
 
     plt.figure(figsize=(10,8),dpi=80)
     plt.imshow(img,cmap='gray')
     plt.show()
 
-hungarian()
+
+#圆检测
+#内部进行滤波，再进行检测
+def hug_circle():
+    img=cv.imread("resource/huo.png")
+    img_gray=cv.cvtColor(img,cv.COLOR_BGR2GRAY)                 #转为灰度图
+    img1=cv.medianBlur(img_gray,7)                         #经行中值滤波，减少影响
+
+    #进行霍夫检测
+    #滤波处理后的图片，分辨率，圆心距离(数值内认为同一圆心)，边缘检测的参数，圆心和半径的共有阈值，最小半径，最大半径
+    circle=cv.HoughCircles(img1,cv.HOUGH_GRADIENT,1,100,param1=100,param2=30,minRadius=10,maxRadius=1000)
+
+    #得到一个三维数组
+    print(circle)
+
+    #这里循环这样理解：
+    #取三维组第一个值，在这个得到的二维数组中进行遍历。每一组即为一个圆的信息
+    for i in circle[0,:]:
+
+        print(i[0],i[1],i[2])
+
+
+        #绘制圆
+        #圆心为0,1，半径为2    注意：由于opencv的更新，需要强制转换成int数值，才能正常运行
+        cv.circle(img,(int(i[0]),int(i[1])),int(i[2]),(0,255,0),3)
+
+        #绘制圆心，半径取足够小
+        cv.circle(img,(int(i[0]),int(i[1])),2,(0,0,255),3)
+
+    plt.figure(figsize=(10, 8), dpi=80)
+    plt.imshow(img[:,:,::-1], cmap='gray')
+    plt.title("圆检测")
+
+    plt.show()
+
+
+
+
