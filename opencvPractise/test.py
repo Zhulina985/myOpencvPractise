@@ -236,7 +236,7 @@ def histogram():
 def mask():
     img=cv.imread("resource/and.jpg",0)
     mask1=np.zeros(img.shape[:2],np.uint8)  #确定蒙版
-    mask1[400:650,200:500]=1                #设置区域参数，高400-600 宽200-500
+    mask1[400:650,200:500]=1                #设置区域参数，高400-650 宽200-500
 
     mask_img=cv.bitwise_and(img,img,mask=mask1) #传入图片和蒙版(进行与操作)
     mask_histr=cv.calcHist([img],[0],mask1,[256],[0,256])   #绘制直方图，掩膜存在mask=mask1
@@ -447,6 +447,54 @@ def hug_circle():
     plt.title("圆检测")
 
     plt.show()
+
+
+#角点检测
+#harris检测,通过椭圆(缓慢变化和快速变化).得到灰度变化最快的部分
+def corner1():
+    img=cv.imread("resource/corner.png")
+
+
+    gray=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+
+    gray=np.float32(gray)   #将图片转为float32类型
+
+    dst=cv.cornerHarris(gray,3,3,0.04)  #进行harriers检测,邻域,sobel核大小,检测参数(0.04-0.05)
+
+       #得到角点信息
+
+    img[dst>0.002*dst.max()]=[0,0,255]      #设置阈值,打印出所有角点  ?运行原理?
+
+    plt.figure(figsize=(10, 8), dpi=80)
+    plt.imshow(img[:,:,::-1])
+    plt.title("角点检测")
+    plt.show()
+
+#tomas检查
+#harris检测升级,用M矩阵的特征值，已两侧检测中较小值为基准，其大于阈值，则说明是角点
+def corner2():
+    img=cv.imread("resource/corner.png")
+    gray=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+
+    corner=cv.goodFeaturesToTrack(gray,100,0.0000001,0.05,mask=None)        #tomas检测api,图像,最大角点数，角点着质量(0-1),最小间隔距离
+
+    print(corner[0].ravel())       #得到坐标
+
+    for i in corner:
+        x,y=i.ravel()
+        x=int(x)
+        y=int(y)
+        cv.circle(img,(x,y),2,(0,0,255),-1)     #循环绘制图像
+
+    plt.figure(figsize=(10, 8), dpi=80)
+    plt.imshow(img[:,:,::-1])
+    plt.show()
+
+
+#上面两种算法具有旋转不变性：旋转图像依然能检测出来
+#不具备尺度不变型：由于上述两种算法的本质为利用很小区域，检测该区域中的灰度差值变化，所以图像的大小会影响检测结果
+
+
 
 
 
