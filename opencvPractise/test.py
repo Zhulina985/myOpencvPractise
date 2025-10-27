@@ -493,7 +493,26 @@ def corner2():
 
 #上面两种算法具有旋转不变性：旋转图像依然能检测出来
 #不具备尺度不变型：由于上述两种算法的本质为利用很小区域，检测该区域中的灰度差值变化，所以图像的大小会影响检测结果
+#sift关键点的检测
+def sift():
 
+
+    img=cv.imread("resource/corner.png")
+
+    gray=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+
+    sift1=cv.SIFT.create()       #创建sift算法对象
+
+    kp,des=sift1.detectAndCompute(image=gray,mask=None)     #kp:关键点(位置，尺度，方向信息)  des:描述，梯度信息
+
+    # 绘制关键点:原始图像，关键点，输出图像,颜色(默认多色),flag:绘图的表示功能(绘制样式)
+    cv.drawKeypoints(img,kp,img,flags=cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    plt.figure(figsize=(10, 8), dpi=80)
+    plt.imshow(img[:,:,::-1])
+    plt.show()
+
+sift()
 
 
 
