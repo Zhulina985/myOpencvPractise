@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
+from sympy import false
 
 
 #mat模型
@@ -512,9 +513,87 @@ def sift():
     plt.imshow(img[:,:,::-1])
     plt.show()
 
-sift()
+
+
+#fast检测
+#对算法进行优化，在选取点中的圆型区域检测阈值，优点：速度快 缺点：关键点过多
+def fast():
+    img=cv.imread("resource/corner.png")
+
+    #开启非极大值抑制
+    fast=cv.FastFeatureDetector()
+
+    kp=fast.detect(img,None)
+
+    img1=cv.drawKeypoints(img,kp,img,(0,0,255))
+
+    #关闭抑制
+    fast.setNonmaxSuppression(false)
+    kp=fast.detect(img,None)
+
+    img2=cv.drawKeypoints(img,kp,img,(0,0,255))
+
+    fig,axes=plt.subplots(nrows=1,ncols=2)
+    axes[0].imshow(img1[:,:,::-1])
+    axes[1].imshow(img2[:,:,::-1])
+
+    plt.show()
+
+#orb检测
+
+def orb():
+
+    img=cv.imread("resource/corner.png")
+
+    orb=cv.ORB()
+
+    kp,des=orb.detectAndCompute(img,None)
+
+    img2=cv.drawKeypoints(img,kp,img,(0,0,255))
+
+    plt.figure(figsize=(10, 8), dpi=80)
+    plt.imshow(img2[:,:,::-1])
+    plt.show()
 
 
 
+#视频流操作
+def video():
+
+    video=cv.VideoCapture("resource/videomp4.mp4")  #视频读取
+
+    while(video.isOpened()):                        #检测是否成功
+        ret,frame=video.read()                      #读取每一帧
+        if ret==True:                               #检测是否成功
+            cv.imshow('frame',frame)        #展示
+        if cv.waitKey(25) & 0xFF == ord('q'):        #设置帧率并设置退出按键
+            break
 
 
+    video.release()             #释放视频
+    cv.destroyAllWindows()
+
+def video_set():
+   video=cv.VideoCapture("resource/videomp4.mp4")
+   width = int(video.get(3))
+   height = int(video.get(4))
+
+   print(width,height)
+   fourcc = cv.VideoWriter_fourcc(*'mp4v')      #设置视频4字节码
+   out=cv.VideoWriter("download/test.mp4",fourcc,60.0,(width,height))       #保存位置、字节码、帧率、长宽
+
+   while True:
+       ret,frame=video.read()
+
+       if ret:
+           out.write(frame)             #保存
+           cv.imshow('frame',frame)
+           if cv.waitKey(25) & 0xFF == ord('q'): break
+
+
+   video.release()
+   out.release()
+   cv.destroyAllWindows()
+
+
+video_set()
