@@ -596,4 +596,53 @@ def video_set():
    cv.destroyAllWindows()
 
 
-video_set()
+#视频追踪
+#核心理解：在第一帧图像上获取一个位置，通过比较下一帧直方图，找到最相似的位置
+
+def video_catch():
+    cap=cv.VideoCapture("resource/catch.mp4")
+    ret, frame=cap.read()
+    r,h,c,w=0,200,0,200         #选取第一帧位置 行，长，列，宽
+
+    track=(c,r,w,h)             #得到目标位置
+    roi=frame[r:r+h,c:c+w]      #感兴趣区域
+
+
+    hsv_roi = cv.cvtColor(roi,cv.COLOR_BGR2HSV) #转换色彩空间HSV
+
+    #可以选择增加降低亮度的值
+    roi_hist=cv.calcHist([hsv_roi],[0],None,[180],[0,180])  #计算直方图
+
+    #归一化
+    cv.normalize(roi_hist,roi_hist,0,255,cv.NORM_MINMAX)
+
+
+    #设置追踪
+    #终止条件，迭代次数，窗口漂移
+    term_crit = (cv.TERM_CRITERIA_MAX_ITER|cv.TERM_CRITERIA_COUNT, 10, 1)
+
+    while True:
+        ret, frame=cap.read()
+        if ret:
+            hsv=cv.cvtColor(frame,cv.COLOR_BGR2HSV)     #计算反射投影
+            dst=cv.calcBackProject([hsv],[0],roi_hist,[0,256],1)
+
+            #进行追踪
+            ret,track=cv.meanShift(dst,track,term_crit)
+
+            x,y,w,h=track
+
+            #绘制图形
+            img2=cv.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
+            cv.imshow('frame',img2)
+
+            if cv.waitKey(25) & 0xFF == ord('q'): break
+
+        else:break
+
+
+    cap.release()
+    cv.destroyAllWindows()
+
+video_catch()
+
