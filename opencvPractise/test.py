@@ -644,5 +644,61 @@ def video_catch():
     cap.release()
     cv.destroyAllWindows()
 
-video_catch()
+def face():
+    img=cv.imread("resource/maer.png")
 
+    gray=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+
+
+    #加载容器，注意路径正确
+    classifier=cv.CascadeClassifier("E:/index/myPractise/photo-organizer-family/.venv/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
+    classifier.load("E:/index/myPractise/photo-organizer-family/.venv/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
+
+    #得到检测的图形
+    rects=classifier.detectMultiScale(img)
+
+
+
+    #绘制图形
+    for rect in rects:
+        x,y,w,h=rect
+        cv.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+
+    plt.figure(figsize=(10, 8), dpi=80)
+    plt.imshow(img[:,:,::-1])
+    plt.show()
+
+
+def face_video():
+    video_detect=cv.VideoCapture("resource/face_detect.mp4")
+
+    while(video_detect.isOpened()):
+        ret,frame=video_detect.read()
+
+        if ret:
+
+            gray=cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
+
+            catch=cv.CascadeClassifier("E:/index/myPractise/photo-organizer-family/.venv/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
+
+            catch.load("E:/index/myPractise/photo-organizer-family/.venv/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
+
+            rects=catch.detectMultiScale(gray,minNeighbors=3)
+            print(rects)
+            for rect in rects:
+                x,y,w,h=rect
+                img=cv.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+
+                cv.imshow('frame', img)
+
+
+
+            if cv.waitKey(1) & 0xFF == ord('q'): break
+
+
+        else:break
+
+    video_detect.release()
+    cv.destroyAllWindows()
+
+face_video()
