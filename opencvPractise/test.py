@@ -670,7 +670,7 @@ def face():
 
 
 def face_video():
-    video_detect=cv.VideoCapture("resource/face_detect.mp4")
+    video_detect=cv.VideoCapture("resource/new-face.mp4")
 
     while(video_detect.isOpened()):
         ret,frame=video_detect.read()
@@ -683,7 +683,7 @@ def face_video():
 
             catch.load("E:/index/myPractise/photo-organizer-family/.venv/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
 
-            rects=catch.detectMultiScale(gray,minNeighbors=3)
+            rects=catch.detectMultiScale(gray,1.4,minNeighbors=1)
             print(rects)
             for rect in rects:
                 x,y,w,h=rect
