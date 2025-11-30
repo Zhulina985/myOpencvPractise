@@ -1,13 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from sympy import symbols, exp, sin, cos, pi
+from sympy import symbols
+import matplotlib.animation as animation
 
 
 def task1():
     import numpy as np
     import matplotlib.pyplot as plt
     from sympy import symbols, exp, sin, pi
+    import matplotlib.animation as animation
 
     # ===================== 1. 问题定义与参数设置 =====================
     # 一阶线性双曲型PDE（传输方程）：u_t + c*u_x = 0
@@ -23,9 +24,11 @@ def task1():
     # 数值计算参数
     Nx = 200  # 空间离散点数
     Nt = 50  # 时间离散点数（用于最终时刻计算）
+    N_frames = 50  # 动画帧数
 
     # 生成空间网格和时间点
     x = np.linspace(0, L, Nx)
+    t_vals = np.linspace(0, T_max, N_frames)
     t_final = T_max  # 最终时刻
 
     # ===================== 2. 初始条件与边界条件 =====================
@@ -59,28 +62,37 @@ def task1():
     print(f"物理意义：波形以速度{c}m/s沿x轴正方向传播，形状保持不变")
     print("=" * 80)
 
-    # ===================== 5. 结果可视化（动画版） =====================
-    fig, ax = plt.subplots(figsize=(10, 6))
-    line, = ax.plot(x, u_initial, color='blue', linewidth=2, label='Waveform')
-    ax.plot(x, u_final, color='red', linestyle='--', alpha=0.5, label=f'Final (t={T_max}s)')
+    # ===================== 5. 结果可视化 =====================
+    fig, ax = plt.figure(figsize=(10, 6)), plt.gca()
+    line, = ax.plot(x, u_initial, color='red', linewidth=2, label='Current Time')
+    initial_line = ax.plot(x, u_initial, color='blue', linewidth=2, alpha=0.3, label='Initial (t=0)')[0]
+
+    # 标注波传播方向
+    plt.arrow(4, 0.8, c * t_final * 0.8, 0, head_width=0.05, head_length=0.2, fc='green', ec='green',
+              label='Wave Propagation Direction')
+
+    # 图表设置
     ax.set_xlabel('Position x (m)', fontsize=12)
     ax.set_ylabel('Amplitude u(x,t)', fontsize=12)
-    ax.set_title('1st-order Hyperbolic PDE (Transport Equation) Animation', fontsize=14)
+    ax.set_title('1st-order Hyperbolic PDE (Transport Equation) Solution', fontsize=14)
     ax.set_xlim(0, L)
     ax.set_ylim(-0.1, 1.1)
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=12)
 
-    # 动画更新函数
+    # 添加时间文本
+    time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes, fontsize=12)
+
     def update(frame):
-        t = frame * T_max / 100
-        u_t = np.exp(-(x - c * t - 3) ** 2)
-        line.set_ydata(u_t)
-        ax.set_title(f'Transport Equation (t={t:.2f}s)', fontsize=14)
-        return line,
+        t = t_vals[frame]
+        u_current = np.exp(-(x - c * t - 3) ** 2)
+        line.set_ydata(u_current)
+        time_text.set_text(f'Time: t = {t:.2f}s')
+        return line, time_text
 
     # 创建动画
-    ani = FuncAnimation(fig, update, frames=100, interval=50, blit=True)
+    ani = animation.FuncAnimation(fig, update, frames=N_frames, interval=50, blit=True)
+
     plt.tight_layout()
     plt.show()
 
@@ -98,6 +110,7 @@ def task2_1d():
     import numpy as np
     import matplotlib.pyplot as plt
     from sympy import symbols, sin, exp, pi
+    import matplotlib.animation as animation
 
     # ===================== 1. 问题定义与参数设置 =====================
     # 1D热方程：u_t = k * u_xx （描述细杆的热传导过程）
@@ -111,9 +124,11 @@ def task2_1d():
     # 数值计算参数
     Nx = 100  # 空间离散点数（越多越精细）
     N_terms = 5  # 傅里叶级数项数（用于表达式显示）
+    N_frames = 50  # 动画帧数
 
     # 空间网格生成
     x = np.linspace(0, L, Nx)  # 从0到L均匀分布的空间点
+    t_vals = np.linspace(0, T_max, N_frames)
 
     # ===================== 2. 初始条件(ICs)与边界条件(BCs) =====================
     # --- 初始条件 (ICs)：t=0时的温度分布 ---
@@ -164,33 +179,41 @@ def task2_1d():
     print(f"1D热方程解的近似表达式（前{N_terms}项）：")
     print("u(x,t) = " + " + ".join(expression_terms))
 
-    # ===================== 5. 结果可视化（动画版） =====================
+    # ===================== 5. 结果可视化 =====================
     fig, ax = plt.subplots(figsize=(10, 6))
-    line, = ax.plot(x, u_initial, color='blue', linewidth=2, label='Temperature')
-    ax.plot(x, u_final, color='red', linestyle='--', alpha=0.5, label=f'Final (t={T_max}s)')
+    line, = ax.plot(x, u_initial, color='red', linewidth=2, label='Current Time')
+    initial_line = ax.plot(x, u_initial, color='blue', linewidth=2, alpha=0.3, label='Initial (t=0)')[0]
+
+    # 标注边界条件（两端温度为0）
     ax.scatter([0, L], [0, 0], color='black', s=50, label='边界条件 u(0,t)=u(L,t)=0')
+
+    # 图表美化
     ax.set_xlabel('x (m)', fontsize=12)
     ax.set_ylabel('u(x,t)', fontsize=12)
-    ax.set_title('1D Heat Equation Animation', fontsize=14)
+    ax.set_title('1D Heat Equation - Time Evolution', fontsize=14)
     ax.set_xlim(0, L)
     ax.set_ylim(0, np.max(u_initial) * 1.1)
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=12)
 
-    # 动画更新函数
+    # 添加时间文本
+    time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes, fontsize=12)
+
     def update(frame):
-        t = frame * T_max / 100
-        u_t = np.zeros_like(x)
+        t = t_vals[frame]
+        u_current = np.zeros_like(x)
         for n in range(1, N_terms + 1):
             lambda_n = (n * np.pi / L) ** 2
             T_n = np.exp(-k * lambda_n * t)
             X_n = np.sin(n * np.pi * x / L)
-            u_t += Cn_list[n - 1] * X_n * T_n
-        line.set_ydata(u_t)
-        ax.set_title(f'1D Heat Equation (t={t:.2f}s)', fontsize=14)
-        return line,
+            u_current += Cn_list[n - 1] * X_n * T_n
+        line.set_ydata(u_current)
+        time_text.set_text(f'Time: t = {t:.2f}s')
+        return line, time_text
 
-    ani = FuncAnimation(fig, update, frames=100, interval=50, blit=True)
+    # 创建动画
+    ani = animation.FuncAnimation(fig, update, frames=N_frames, interval=50, blit=True)
+
     plt.tight_layout()
     plt.show()
 
@@ -206,6 +229,7 @@ def task2_2d():
     import matplotlib.pyplot as plt
     from sympy import symbols, sin, exp, pi
     from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.animation as animation
 
     # ===================== 2D热方程求解 =====================
     # 参数设置
@@ -216,11 +240,13 @@ def task2_2d():
     Nx = 50  # x方向离散点数
     Ny = 50  # y方向离散点数
     N_terms = 5  # 级数项数
+    N_frames = 30  # 动画帧数
 
     # 生成网格
     x = np.linspace(0, a, Nx)
     y = np.linspace(0, b, Ny)
     X, Y = np.meshgrid(x, y)
+    t_vals = np.linspace(0, T_max, N_frames)
 
     # 初始条件
     u0 = np.sin(np.pi * X / a) * np.sin(np.pi * Y / b)
@@ -259,39 +285,73 @@ def task2_2d():
     print("u(x,y,t) = " + " + ".join(expression_terms))
     print("=" * 80)
 
-    # ===================== 可视化结果（动画版） =====================
+    # ===================== 可视化结果 =====================
     fig = plt.figure(figsize=(12, 5))
-    ax = fig.add_subplot(111, projection='3d')
-    surf = ax.plot_surface(X, Y, u0, cmap='viridis')
-    ax.set_title(f'2D Heat Equation (t=0)')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('u')
+
+    # 初始时刻
+    ax1 = fig.add_subplot(121, projection='3d')
+    surf1 = ax1.plot_surface(X, Y, u0, cmap='viridis')
+    ax1.set_title(f'Initial (t=0)')
+    ax1.set_xlabel('x')
+    ax1.set_ylabel('y')
+    ax1.set_zlabel('u')
+    ax1.set_zlim(0, np.max(u0) * 1.1)
+
+    # 动态更新的最终时刻
+    ax2 = fig.add_subplot(122, projection='3d')
+    surf2 = ax2.plot_surface(X, Y, u0, cmap='viridis')
+    ax2.set_title(f'Evolution (t=0)')
+    ax2.set_xlabel('x')
+    ax2.set_ylabel('y')
+    ax2.set_zlabel('u')
+    ax2.set_zlim(0, np.max(u0) * 1.1)
+
+    time_text = ax2.text2D(0.02, 0.95, '', transform=ax2.transAxes, fontsize=10)
 
     def update(frame):
-        nonlocal surf
-        t = frame * T_max / 50
-        u_t = np.sin(np.pi * X / a) * np.sin(np.pi * Y / b) * np.exp(
+        t = t_vals[frame]
+        u_current = np.sin(np.pi * X / a) * np.sin(np.pi * Y / b) * np.exp(
             -k * (np.pi ** 2 / a ** 2 + np.pi ** 2 / b ** 2) * t)
-        surf.remove()
-        surf = ax.plot_surface(X, Y, u_t, cmap='viridis')
-        ax.set_title(f'2D Heat Equation (t={t:.2f}s)')
-        return surf,
 
-    ani = FuncAnimation(fig, update, frames=50, interval=200, blit=False)
+        ax2.clear()
+        surf2 = ax2.plot_surface(X, Y, u_current, cmap='viridis')
+        ax2.set_title(f'Evolution (t={t:.2f})')
+        ax2.set_xlabel('x')
+        ax2.set_ylabel('y')
+        ax2.set_zlabel('u')
+        ax2.set_zlim(0, np.max(u0) * 1.1)
+        time_text = ax2.text2D(0.02, 0.95, f'Time: {t:.2f}s', transform=ax2.transAxes, fontsize=10)
+
+        return surf2, time_text
+
+    ani = animation.FuncAnimation(fig, update, frames=N_frames, interval=100, blit=False)
+
     plt.tight_layout()
     plt.show()
 
-    # 等高线对比（静态）
+    # 等高线对比
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
     cont1 = ax1.contourf(X, Y, u0, levels=20, cmap='viridis')
     ax1.set_title('Initial (t=0)')
     plt.colorbar(cont1, ax=ax1)
 
-    cont2 = ax2.contourf(X, Y, u_final, levels=20, cmap='viridis')
-    ax2.set_title(f'Final (t={T_max})')
+    cont2 = ax2.contourf(X, Y, u0, levels=20, cmap='viridis')
+    ax2.set_title('Evolution (t=0)')
     plt.colorbar(cont2, ax=ax2)
 
+    def update_contour(frame):
+        t = t_vals[frame]
+        u_current = np.sin(np.pi * X / a) * np.sin(np.pi * Y / b) * np.exp(
+            -k * (np.pi ** 2 / a ** 2 + np.pi ** 2 / b ** 2) * t)
+
+        ax2.clear()
+        cont2 = ax2.contourf(X, Y, u_current, levels=20, cmap='viridis')
+        ax2.set_title(f'Evolution (t={t:.2f})')
+        plt.colorbar(cont2, ax=ax2)
+
+        return cont2,
+
+    ani2 = animation.FuncAnimation(fig, update_contour, frames=N_frames, interval=100, blit=False)
     plt.tight_layout()
     plt.show()
 
@@ -301,6 +361,7 @@ def task2_3d():
     import matplotlib.pyplot as plt
     from sympy import symbols, sin, exp, pi
     from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.animation as animation
 
     # ===================== 3D热方程求解 =====================
     # 参数设置
@@ -313,12 +374,14 @@ def task2_3d():
     Ny = 20  # y方向离散点数
     Nz = 20  # z方向离散点数
     N_terms = 2  # 级数项数（3D计算量较大）
+    N_frames = 20  # 动画帧数
 
     # 生成网格
     x = np.linspace(0, a, Nx)
     y = np.linspace(0, b, Ny)
     z = np.linspace(0, c, Nz)
     X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+    t_vals = np.linspace(0, T_max, N_frames)
 
     # 初始条件
     u0 = np.sin(np.pi * X / a) * np.sin(np.pi * Y / b) * np.sin(np.pi * Z / c)
@@ -360,40 +423,91 @@ def task2_3d():
     print("u(x,y,z,t) = " + " + ".join(expression_terms))
     print("=" * 80)
 
-    # ===================== 可视化结果（动画版） =====================
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
-    X_slice, Y_slice = np.meshgrid(x, y)
+    # ===================== 可视化结果（切片展示） =====================
+    fig = plt.figure(figsize=(15, 10))
+
+    # 初始时刻切片（z=0.5）
+    ax1 = fig.add_subplot(231, projection='3d')
     slice_z05_initial = u0[:, :, Nz // 2]
-    surf = ax.plot_surface(X_slice, Y_slice, slice_z05_initial.T, cmap='viridis')
-    ax.set_title('3D Heat Equation (z=0.5, t=0)')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('u')
+    X_slice, Y_slice = np.meshgrid(x, y)
+    ax1.plot_surface(X_slice, Y_slice, slice_z05_initial.T, cmap='viridis')
+    ax1.set_title('Initial (z=0.5)')
+    ax1.set_xlabel('x')
+    ax1.set_ylabel('y')
+    ax1.set_zlim(0, np.max(slice_z05_initial) * 1.1)
+
+    # 动态更新的切片（z=0.5）
+    ax2 = fig.add_subplot(232, projection='3d')
+    slice_z05_current = ax2.plot_surface(X_slice, Y_slice, slice_z05_initial.T, cmap='viridis')
+    ax2.set_title(f'Evolution (z=0.5, t=0)')
+    ax2.set_xlabel('x')
+    ax2.set_ylabel('y')
+    ax2.set_zlim(0, np.max(slice_z05_initial) * 1.1)
+
+    time_text = ax2.text2D(0.02, 0.95, '', transform=ax2.transAxes, fontsize=10)
+
+    # 其他切片保持静态展示
+    ax3 = fig.add_subplot(233, projection='3d')
+    slice_x05_initial = u0[Nx // 2, :, :]
+    Y_slice, Z_slice = np.meshgrid(y, z)
+    ax3.plot_surface(Y_slice, Z_slice, slice_x05_initial.T, cmap='viridis')
+    ax3.set_title('Initial (x=0.5)')
+    ax3.set_xlabel('y')
+    ax3.set_ylabel('z')
+
+    ax4 = fig.add_subplot(234, projection='3d')
+    slice_x05_final = u_final[Nx // 2, :, :]
+    ax4.plot_surface(Y_slice, Z_slice, slice_x05_final.T, cmap='viridis')
+    ax4.set_title(f'Final (x=0.5, t={T_max})')
+    ax4.set_xlabel('y')
+    ax4.set_ylabel('z')
+
+    ax5 = fig.add_subplot(235, projection='3d')
+    slice_y05_initial = u0[:, Ny // 2, :]
+    X_slice, Z_slice = np.meshgrid(x, z)
+    ax5.plot_surface(X_slice, Z_slice, slice_y05_initial.T, cmap='viridis')
+    ax5.set_title('Initial (y=0.5)')
+    ax5.set_xlabel('x')
+    ax5.set_ylabel('z')
+
+    ax6 = fig.add_subplot(236, projection='3d')
+    slice_y05_final = u_final[:, Ny // 2, :]
+    ax6.plot_surface(X_slice, Z_slice, slice_y05_final.T, cmap='viridis')
+    ax6.set_title(f'Final (y=0.5, t={T_max})')
+    ax6.set_xlabel('x')
+    ax6.set_ylabel('z')
 
     def update(frame):
-        nonlocal surf
-        t = frame * T_max / 50
-        u_t = np.sin(np.pi * X / a) * np.sin(np.pi * Y / b) * np.sin(np.pi * Z / c) * np.exp(-k * 3 * (np.pi ** 2) * t)
-        slice_z05_t = u_t[:, :, Nz // 2]
-        surf.remove()
-        surf = ax.plot_surface(X_slice, Y_slice, slice_z05_t.T, cmap='viridis')
-        ax.set_title(f'3D Heat Equation (z=0.5, t={t:.2f}s)')
-        return surf,
+        t = t_vals[frame]
+        u_current = np.sin(np.pi * X / a) * np.sin(np.pi * Y / b) * np.sin(np.pi * Z / c) * np.exp(
+            -k * (np.pi ** 2 / a ** 2 + np.pi ** 2 / b ** 2 + np.pi ** 2 / c ** 2) * t)
 
-    ani = FuncAnimation(fig, update, frames=50, interval=200, blit=False)
+        slice_z05_current = u_current[:, :, Nz // 2]
+
+        ax2.clear()
+        surf = ax2.plot_surface(X_slice, Y_slice, slice_z05_current.T, cmap='viridis')
+        ax2.set_title(f'Evolution (z=0.5, t={t:.2f})')
+        ax2.set_xlabel('x')
+        ax2.set_ylabel('y')
+        ax2.set_zlim(0, np.max(slice_z05_initial) * 1.1)
+        time_text = ax2.text2D(0.02, 0.95, f'Time: {t:.2f}s', transform=ax2.transAxes, fontsize=10)
+
+        return surf, time_text
+
+    ani = animation.FuncAnimation(fig, update, frames=N_frames, interval=200, blit=False)
     plt.tight_layout()
     plt.show()
 
-    # ===================== 中心点温度变化（静态） =====================
-    t_vals = np.linspace(0, T_max, 100)
-    center_temp = np.exp(-k * ((np.pi / a) ** 2 + (np.pi / b) ** 2 + (np.pi / c) ** 2) * t_vals)
+    # ===================== 中心点温度变化 =====================
+    # 提取中心点温度随时间的变化（理论解）
+    t_vals_full = np.linspace(0, T_max, 100)
+    center_temp = np.exp(-k * ((np.pi / a) ** 2 + (np.pi / b) ** 2 + (np.pi / c) ** 2) * t_vals_full)
 
     plt.figure(figsize=(8, 4))
-    plt.plot(t_vals, center_temp, 'b-', linewidth=2)
+    plt.plot(t_vals_full, center_temp, 'b-', linewidth=2)
     plt.xlabel('Time t')
     plt.ylabel('Center Temperature')
-    plt.title('3D Heat Equation Center Temperature Decay')
+    plt.title('3D Heat Equation - Center Temperature Evolution')
     plt.grid(True)
     plt.show()
 
@@ -402,6 +516,7 @@ def task3_1d():
     import numpy as np
     import matplotlib.pyplot as plt
     from sympy import symbols, sin, cos, pi
+    import matplotlib.animation as animation
 
     # ===================== 1. 问题定义与参数设置 =====================
     # 1D波动方程：u_tt = c² u_xx（描述两端固定弦的振动）
@@ -416,9 +531,11 @@ def task3_1d():
     # 数值计算参数
     Nx = 100  # 空间离散点数
     N_terms = 5  # 傅里叶级数项数（用于表达式显示）
+    N_frames = 100  # 动画帧数
 
     # 生成空间网格
     x = np.linspace(0, L, Nx)
+    t_vals = np.linspace(0, T_max, N_frames)
 
     # ===================== 2. 初始条件(ICs)与边界条件(BCs) =====================
     # --- 初始条件 (ICs) ---
@@ -485,31 +602,41 @@ def task3_1d():
         print(f"An({n + 1}) = {An_list[n]}, Bn({n + 1}) = {Bn_list[n]}")
     print("=" * 80)
 
-    # ===================== 5. 结果可视化（动画版） =====================
+    # ===================== 5. 结果可视化 =====================
     fig, ax = plt.subplots(figsize=(10, 6))
-    line, = ax.plot(x, u_initial, color='blue', linewidth=2, label='Displacement')
+    line, = ax.plot(x, u_initial, color='red', linewidth=2, label='Current Time')
+    initial_line = ax.plot(x, u_initial, color='blue', linewidth=2, alpha=0.3, label='Initial (t=0)')[0]
+
+    # 标注边界条件
     ax.scatter([0, L], [0, 0], color='black', s=50, label='BC: u(0,t)=u(L,t)=0')
+
+    # 图表设置
     ax.set_xlabel('Position x (m)', fontsize=12)
     ax.set_ylabel('Displacement u(x,t)', fontsize=12)
-    ax.set_title('1D Wave Equation Animation', fontsize=14)
+    ax.set_title('1D Wave Equation Solution (Fixed-Fixed String Vibration)', fontsize=14)
     ax.set_xlim(0, L)
     ax.set_ylim(-1.2, 1.2)
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=12)
 
+    # 添加时间文本
+    time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes, fontsize=12)
+
     def update(frame):
-        t = frame * T_max / 200
-        u_t = np.zeros_like(x)
+        t = t_vals[frame]
+        u_current = np.zeros_like(x)
         for n in range(1, N_terms + 1):
             omega_n = n * np.pi * c / L
             T_n = An_list[n - 1] * np.cos(omega_n * t) + Bn_list[n - 1] * np.sin(omega_n * t)
             X_n = np.sin(n * np.pi * x / L)
-            u_t += X_n * T_n
-        line.set_ydata(u_t)
-        ax.set_title(f'1D Wave Equation (t={t:.2f}s)', fontsize=14)
-        return line,
+            u_current += X_n * T_n
+        line.set_ydata(u_current)
+        time_text.set_text(f'Time: t = {t:.2f}s')
+        return line, time_text
 
-    ani = FuncAnimation(fig, update, frames=200, interval=30, blit=True)
+    # 创建动画
+    ani = animation.FuncAnimation(fig, update, frames=N_frames, interval=30, blit=True)
+
     plt.tight_layout()
     plt.show()
 
@@ -524,6 +651,7 @@ def task3_2d():
     import matplotlib.pyplot as plt
     from sympy import symbols, sin, cos, pi
     from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.animation as animation
 
     # ===================== 1. 问题定义与参数设置 =====================
     # 2D波动方程：u_tt = c²(u_xx + u_yy)（描述矩形膜的振动）
@@ -540,11 +668,13 @@ def task3_2d():
     Nx = 50  # x方向离散点数
     Ny = 50  # y方向离散点数
     N_terms = 3  # 级数项数（用于表达式显示）
+    N_frames = 50  # 动画帧数
 
     # 生成网格
     x = np.linspace(0, a, Nx)
     y = np.linspace(0, b, Ny)
     X, Y = np.meshgrid(x, y)
+    t_vals = np.linspace(0, T_max, N_frames)
 
     # ===================== 2. 初始条件与边界条件 =====================
     # --- 初始条件 ---
@@ -567,30 +697,25 @@ def task3_2d():
     # 符号变量
     x_sym, y_sym, t_sym = symbols('x y t')
     expression_terms = []
-    Amn_list = []
-    Bmn_list = []
-    omega_list = []
 
-    # 计算级数解
+    # 预计算系数
+    Amn_list = {}
+    Bmn_list = {}
     for m in range(1, N_terms + 1):
         for n in range(1, N_terms + 1):
-            # 计算Amn和Bmn
             integrand_Amn = u0 * np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b)
             Amn = (4 / (a * b)) * np.trapz(np.trapz(integrand_Amn, x), y)
+            Amn_list[(m, n)] = Amn
 
             integrand_Bmn = v0 * np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b)
             omega_mn = c * np.sqrt((m * np.pi / a) ** 2 + (n * np.pi / b) ** 2)
             Bmn = (4 / (a * b * omega_mn)) * np.trapz(np.trapz(integrand_Bmn, x), y)
+            Bmn_list[(m, n)] = Bmn
 
             # 计算最终时刻解
             T_mn = Amn * np.cos(omega_mn * T_max) + Bmn * np.sin(omega_mn * T_max)
             X_mn = np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b)
             u_final += X_mn * T_mn
-
-            # 保存系数
-            Amn_list.append(Amn)
-            Bmn_list.append(Bmn)
-            omega_list.append(omega_mn)
 
             # 构造表达式
             if Bmn == 0:
@@ -601,36 +726,56 @@ def task3_2d():
 
     # ===================== 4. 输出表达式 =====================
     print("=" * 80)
-    print("2D波动方程解的表达式：")
+    print("2D波动方程近似解：")
     print("u(x,y,t) = " + " + ".join(expression_terms))
     print("=" * 80)
 
-    # ===================== 5. 结果可视化（动画版） =====================
+    # ===================== 5. 结果可视化 =====================
     fig = plt.figure(figsize=(12, 5))
-    ax = fig.add_subplot(111, projection='3d')
-    surf = ax.plot_surface(X, Y, u_initial, cmap='viridis')
-    ax.set_title('2D Wave Equation (t=0)')
-    ax.set_xlabel('x (m)')
-    ax.set_ylabel('y (m)')
-    ax.set_zlabel('u(x,y,t)')
+
+    # 初始时刻
+    ax1 = fig.add_subplot(121, projection='3d')
+    surf1 = ax1.plot_surface(X, Y, u_initial, cmap='viridis')
+    ax1.set_title('Initial Time (t=0)')
+    ax1.set_xlabel('x (m)')
+    ax1.set_ylabel('y (m)')
+    ax1.set_zlabel('u(x,y,t)')
+    ax1.set_zlim(-1.2, 1.2)
+
+    # 动态更新的最终时刻
+    ax2 = fig.add_subplot(122, projection='3d')
+    surf2 = ax2.plot_surface(X, Y, u_initial, cmap='viridis')
+    ax2.set_title(f'Evolution (t=0)')
+    ax2.set_xlabel('x (m)')
+    ax2.set_ylabel('y (m)')
+    ax2.set_zlabel('u(x,y,t)')
+    ax2.set_zlim(-1.2, 1.2)
+
+    time_text = ax2.text2D(0.02, 0.95, '', transform=ax2.transAxes, fontsize=10)
 
     def update(frame):
-        nonlocal surf
-        t = frame * T_max / 100
-        u_t = np.zeros_like(X)
-        idx = 0
+        t = t_vals[frame]
+        u_current = np.zeros_like(X)
         for m in range(1, N_terms + 1):
             for n in range(1, N_terms + 1):
+                omega_mn = c * np.sqrt((m * np.pi / a) ** 2 + (n * np.pi / b) ** 2)
+                T_mn = Amn_list[(m, n)] * np.cos(omega_mn * t) + Bmn_list[(m, n)] * np.sin(omega_mn * t)
                 X_mn = np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b)
-                T_mn = Amn_list[idx] * np.cos(omega_list[idx] * t) + Bmn_list[idx] * np.sin(omega_list[idx] * t)
-                u_t += X_mn * T_mn
-                idx += 1
-        surf.remove()
-        surf = ax.plot_surface(X, Y, u_t, cmap='viridis')
-        ax.set_title(f'2D Wave Equation (t={t:.2f}s)')
-        return surf,
+                u_current += X_mn * T_mn
 
-    ani = FuncAnimation(fig, update, frames=100, interval=50, blit=False)
+        ax2.clear()
+        surf2 = ax2.plot_surface(X, Y, u_current, cmap='viridis')
+        ax2.set_title(f'Evolution (t={t:.2f})')
+        ax2.set_xlabel('x (m)')
+        ax2.set_ylabel('y (m)')
+        ax2.set_zlabel('u(x,y,t)')
+        ax2.set_zlim(-1.2, 1.2)
+        time_text = ax2.text2D(0.02, 0.95, f'Time: {t:.2f}s', transform=ax2.transAxes, fontsize=10)
+
+        return surf2, time_text
+
+    ani = animation.FuncAnimation(fig, update, frames=N_frames, interval=50, blit=False)
+
     plt.tight_layout()
     plt.show()
 
@@ -645,6 +790,7 @@ def task3_3d():
     import matplotlib.pyplot as plt
     from sympy import symbols, sin, cos, pi
     from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.animation as animation
 
     # ===================== 1. 问题定义与参数设置 =====================
     # 3D波动方程：u_tt = c²(u_xx + u_yy + u_zz)（描述立方体腔的振动）
@@ -663,12 +809,14 @@ def task3_3d():
     Ny = 20  # y方向离散点数
     Nz = 20  # z方向离散点数
     N_terms = 2  # 级数项数（3D计算量较大）
+    N_frames = 30  # 动画帧数
 
     # 生成网格
     x = np.linspace(0, a, Nx)
     y = np.linspace(0, b, Ny)
     z = np.linspace(0, c_len, Nz)
     X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+    t_vals = np.linspace(0, T_max, N_frames)
 
     # ===================== 2. 初始条件与边界条件 =====================
     # --- 初始条件 ---
@@ -689,29 +837,24 @@ def task3_3d():
     # 符号变量
     x_sym, y_sym, z_sym, t_sym = symbols('x y z t')
     expression_terms = []
-    coeff_list = []
 
-    # 计算级数解
+    # 预计算系数
+    Amnp_list = {}
     for m in range(1, N_terms + 1):
         for n in range(1, N_terms + 1):
             for p in range(1, N_terms + 1):
-                # 计算Amnp和Bmnp
                 integrand_Amnp = u0 * np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b) * np.sin(
                     p * np.pi * Z / c_len)
                 Amnp = (8 / (a * b * c_len)) * np.trapz(np.trapz(np.trapz(integrand_Amnp, x), y), z)
+                Amnp_list[(m, n, p)] = Amnp
 
-                integrand_Bmnp = v0 * np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b) * np.sin(
-                    p * np.pi * Z / c_len)
                 omega_mnp = c * np.sqrt((m * np.pi / a) ** 2 + (n * np.pi / b) ** 2 + (p * np.pi / c_len) ** 2)
-                Bmnp = (8 / (a * b * c_len * omega_mnp)) * np.trapz(np.trapz(np.trapz(integrand_Bmnp, x), y), z)
+                Bmnp = 0  # 初始速度为0
 
                 # 计算最终时刻解
                 T_mnp = Amnp * np.cos(omega_mnp * T_max) + Bmnp * np.sin(omega_mnp * T_max)
                 X_mnp = np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b) * np.sin(p * np.pi * Z / c_len)
                 u_final += X_mnp * T_mnp
-
-                # 保存系数
-                coeff_list.append((m, n, p, Amnp, Bmnp, omega_mnp))
 
                 # 构造表达式
                 term = f"{round(Amnp, 6)}*sin({m}*pi*x/{a})*sin({n}*pi*y/{b})*sin({p}*pi*z/{c_len})*cos({round(omega_mnp, 4)}*t)"
@@ -723,32 +866,63 @@ def task3_3d():
     print("u(x,y,z,t) = " + " + ".join(expression_terms))
     print("=" * 80)
 
-    # ===================== 5. 结果可视化（动画版） =====================
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
+    # ===================== 5. 结果可视化（切片展示） =====================
+    fig = plt.figure(figsize=(15, 5))
+
+    # z=0.5切片（初始时刻）
+    ax1 = fig.add_subplot(131, projection='3d')
+    slice_z05_initial = u_initial[:, :, Nz // 2]
     X_slice, Y_slice = np.meshgrid(x, y)
-    slice_z05_initial = u0[:, :, Nz // 2]
-    surf = ax.plot_surface(X_slice, Y_slice, slice_z05_initial.T, cmap='viridis')
-    ax.set_title('3D Wave Equation (z=0.5, t=0)')
-    ax.set_xlabel('x (m)')
-    ax.set_ylabel('y (m)')
-    ax.set_zlabel('u')
+    ax1.plot_surface(X_slice, Y_slice, slice_z05_initial.T, cmap='viridis')
+    ax1.set_title('Initial Time (z=0.5)')
+    ax1.set_xlabel('x (m)')
+    ax1.set_ylabel('y (m)')
+    ax1.set_zlim(-1.2, 1.2)
+
+    # 动态更新的切片（z=0.5）
+    ax2 = fig.add_subplot(132, projection='3d')
+    slice_z05_current = ax2.plot_surface(X_slice, Y_slice, slice_z05_initial.T, cmap='viridis')
+    ax2.set_title(f'Evolution (z=0.5, t=0)')
+    ax2.set_xlabel('x (m)')
+    ax2.set_ylabel('y (m)')
+    ax2.set_zlim(-1.2, 1.2)
+
+    time_text = ax2.text2D(0.02, 0.95, '', transform=ax2.transAxes, fontsize=10)
+
+    # x=0.5切片（最终时刻）
+    ax3 = fig.add_subplot(133, projection='3d')
+    slice_x05_final = u_final[Nx // 2, :, :]
+    Y_slice, Z_slice = np.meshgrid(y, z)
+    ax3.plot_surface(Y_slice, Z_slice, slice_x05_final.T, cmap='viridis')
+    ax3.set_title(f'Final Time (x=0.5, t={T_max})')
+    ax3.set_xlabel('y (m)')
+    ax3.set_ylabel('z (m)')
+    ax3.set_zlim(-1.2, 1.2)
 
     def update(frame):
-        nonlocal surf
-        t = frame * T_max / 100
-        u_t = np.zeros_like(X)
-        for (m, n, p, Amnp, Bmnp, omega_mnp) in coeff_list:
-            X_mnp = np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b) * np.sin(p * np.pi * Z / c_len)
-            T_mnp = Amnp * np.cos(omega_mnp * t) + Bmnp * np.sin(omega_mnp * t)
-            u_t += X_mnp * T_mnp
-        slice_z05_t = u_t[:, :, Nz // 2]
-        surf.remove()
-        surf = ax.plot_surface(X_slice, Y_slice, slice_z05_t.T, cmap='viridis')
-        ax.set_title(f'3D Wave Equation (z=0.5, t={t:.2f}s)')
-        return surf,
+        t = t_vals[frame]
+        u_current = np.zeros_like(X)
+        for m in range(1, N_terms + 1):
+            for n in range(1, N_terms + 1):
+                for p in range(1, N_terms + 1):
+                    omega_mnp = c * np.sqrt((m * np.pi / a) ** 2 + (n * np.pi / b) ** 2 + (p * np.pi / c_len) ** 2)
+                    T_mnp = Amnp_list[(m, n, p)] * np.cos(omega_mnp * t)
+                    X_mnp = np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b) * np.sin(p * np.pi * Z / c_len)
+                    u_current += X_mnp * T_mnp
 
-    ani = FuncAnimation(fig, update, frames=100, interval=50, blit=False)
+        slice_z05_current = u_current[:, :, Nz // 2]
+
+        ax2.clear()
+        surf = ax2.plot_surface(X_slice, Y_slice, slice_z05_current.T, cmap='viridis')
+        ax2.set_title(f'Evolution (z=0.5, t={t:.2f})')
+        ax2.set_xlabel('x (m)')
+        ax2.set_ylabel('y (m)')
+        ax2.set_zlim(-1.2, 1.2)
+        time_text = ax2.text2D(0.02, 0.95, f'Time: {t:.2f}s', transform=ax2.transAxes, fontsize=10)
+
+        return surf, time_text
+
+    ani = animation.FuncAnimation(fig, update, frames=N_frames, interval=100, blit=False)
     plt.tight_layout()
     plt.show()
 
@@ -783,27 +957,21 @@ def task4_1d():
 
     # （若用分离变量法：解为u(x)=A+Bx，由边界条件确定A=0,B=1）
 
-    # ===================== 4. 结果可视化（动画版） =====================
-    fig, ax = plt.subplots(figsize=(8, 4))
-    line, = ax.plot(x, np.zeros_like(x), color='blue', linewidth=2, label='Converging Solution')
-    ax.plot(x, u_analytical, color='red', linestyle='--', alpha=0.5, label='Steady-State (u=x)')
-    ax.scatter([0, L], [0, 1], color='red', s=50, label='BC: u(0)=0, u(L)=1')
-    ax.set_xlabel('Position x (m)')
-    ax.set_ylabel('u(x)')
-    ax.set_title('1D Laplace Equation Convergence Animation')
-    ax.set_xlim(0, L)
-    ax.set_ylim(-0.1, 1.1)
-    ax.grid(True, alpha=0.3)
-    ax.legend()
+    # ===================== 4. 结果可视化 =====================
+    plt.figure(figsize=(8, 4))
+    plt.plot(x, u_analytical, color='blue', linewidth=2, label='Analytical Solution (u(x)=x)')
 
-    def update(frame):
-        t = frame / 50  # 归一化时间步
-        u_t = t * (x / L)  # 从0逐渐收敛到稳态解
-        line.set_ydata(u_t)
-        ax.set_title(f'1D Laplace Equation (Convergence: {frame}/50)')
-        return line,
+    # 标注边界条件
+    plt.scatter([0, L], [0, 1], color='red', s=50, label='BC: u(0)=0, u(L)=1')
 
-    ani = FuncAnimation(fig, update, frames=50, interval=100, blit=True)
+    # 图表设置
+    plt.xlabel('Position x (m)')
+    plt.ylabel('u(x)')
+    plt.title('1D Laplace Equation Solution')
+    plt.xlim(0, L)
+    plt.ylim(-0.1, 1.1)
+    plt.grid(True, alpha=0.3)
+    plt.legend()
     plt.tight_layout()
     plt.show()
 
@@ -841,9 +1009,8 @@ def task4_2d():
     # BC2: u(x,0) = 0, u(x,b) = np.sin(np.pi*x/a) (bottom/top)
 
     # ===================== 3. Solution via Separation of Variables =====================
-    u_steady = np.zeros_like(X)
+    u = np.zeros_like(X)
     expression_terms = []
-    Cn_list = []
 
     # SymPy symbols (avoid conflict with numerical variables)
     x_sym, y_sym = symbols('x y')
@@ -852,11 +1019,10 @@ def task4_2d():
         # Calculate coefficient Cn
         integrand = np.sin(np.pi * x / a) * np.sin(n * np.pi * x / a)
         Cn = (2 / a) * np.trapz(integrand, x) / np.sinh(n * np.pi * b / a)
-        Cn_list.append(Cn)
 
         # Calculate series term
         term = Cn * np.sin(n * np.pi * X / a) * np.sinh(n * np.pi * Y / a)
-        u_steady += term
+        u += term
 
         # Construct symbolic expression
         expr_term = f"{round(Cn, 6)}*sin({n}*pi*x/{a})*sinh({n}*pi*y/{a})"
@@ -868,38 +1034,35 @@ def task4_2d():
     print("u(x,y) = " + " + ".join(expression_terms[:5]))
     print("=" * 80)
 
-    # ===================== 5. Visualization (Animation) =====================
+    # ===================== 5. Visualization =====================
     fig = plt.figure(figsize=(12, 5))
-    ax = fig.add_subplot(111, projection='3d')
-    surf = ax.plot_surface(X, Y, np.zeros_like(X), cmap='viridis')
-    ax.set_title('2D Laplace Equation Convergence (t=0)')
-    ax.set_xlabel('x (m)')
-    ax.set_ylabel('y (m)')
-    ax.set_zlabel('u(x,y)')
 
-    def update(frame):
-        nonlocal surf
-        t = frame / 20  # 收敛因子
-        u_t = np.zeros_like(X)
-        for n in range(1, N_terms + 1):
-            term = Cn_list[n - 1] * np.sin(n * np.pi * X / a) * np.sinh(n * np.pi * Y / a) * (1 - np.exp(-t))
-            u_t += term
-        surf.remove()
-        surf = ax.plot_surface(X, Y, u_t, cmap='viridis')
-        ax.set_title(f'2D Laplace Equation (Convergence: {frame}/20)')
-        return surf,
+    # 3D Surface plot
+    ax1 = fig.add_subplot(121, projection='3d')
+    surf = ax1.plot_surface(X, Y, u, cmap='viridis', alpha=0.8)
+    ax1.set_title('2D Laplace Solution (Surface)')
+    ax1.set_xlabel('x (m)')
+    ax1.set_ylabel('y (m)')
+    ax1.set_zlabel('u(x,y)')
+    fig.colorbar(surf, ax=ax1, shrink=0.5)
 
-    ani = FuncAnimation(fig, update, frames=20, interval=500, blit=False)
+    # Contour plot
+    ax2 = fig.add_subplot(122)
+    contour = ax2.contourf(X, Y, u, levels=20, cmap='viridis')
+    ax2.set_title('2D Laplace Solution (Contour)')
+    ax2.set_xlabel('x (m)')
+    ax2.set_ylabel('y (m)')
+    fig.colorbar(contour, ax=ax2)
+
     plt.tight_layout()
     plt.show()
 
     # ===================== 6. Validation =====================
-    u_top = u_steady[-1, :]
+    u_top = u[-1, :]
     u_top_theory = np.sin(np.pi * x / a)
     error = np.max(np.abs(u_top - u_top_theory))
     print(f"\nTop boundary error: {error:.6f} (smaller = more accurate)")
-    print(
-        f"Boundary check: u(0,y)={u_steady[:, 0].max():.6f}, u(a,y)={u_steady[:, -1].max():.6f}, u(x,0)={u_steady[0, :].max():.6f}")
+    print(f"Boundary check: u(0,y)={u[:, 0].max():.6f}, u(a,y)={u[:, -1].max():.6f}, u(x,0)={u[0, :].max():.6f}")
 
 
 def task4_3d():
@@ -934,9 +1097,8 @@ def task4_3d():
     # BC2: u(x,y,0)=0, u(x,y,c)=np.sin(np.pi*x/a)*np.sin(np.pi*y/b) (z boundaries)
 
     # ===================== 3. Solution via Separation of Variables =====================
-    u_steady = np.zeros_like(X)
+    u = np.zeros_like(X)
     expression_terms = []
-    coeff_list = []
 
     # SymPy symbols
     x_sym, y_sym, z_sym = symbols('x y z')
@@ -949,11 +1111,9 @@ def task4_3d():
                 m * np.pi * x / a) * np.sin(n * np.pi * y / b)[:, np.newaxis]
             Cmn = (4 / (a * b)) * np.trapz(np.trapz(integrand_2d, x, axis=1), y) / np.sinh(k_mn * c)
 
-            coeff_list.append((m, n, Cmn, k_mn))
-
             # Calculate series term
             term = Cmn * np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b) * np.sinh(k_mn * Z)
-            u_steady += term
+            u += term
 
             # Construct symbolic expression
             expr_term = f"{round(Cmn, 6)}*sin({m}*pi*x/{a})*sin({n}*pi*y/{b})*sinh({round(k_mn, 4)}*z)"
@@ -965,41 +1125,47 @@ def task4_3d():
     print("u(x,y,z) = " + " + ".join(expression_terms[:3]))
     print("=" * 80)
 
-    # ===================== 5. Visualization (Animation) =====================
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111)
-    slice_zc_initial = np.zeros((Ny, Nx))
-    im = ax.imshow(slice_zc_initial.T, extent=[0, a, 0, b], origin='lower', cmap='viridis', vmin=0, vmax=1)
-    plt.colorbar(im, ax=ax)
-    ax.set_title('3D Laplace Equation (z=c, t=0)')
-    ax.set_xlabel('x (m)')
-    ax.set_ylabel('y (m)')
+    # ===================== 5. Visualization (Slices) =====================
+    fig = plt.figure(figsize=(15, 5))
 
-    def update(frame):
-        t = frame / 10  # 收敛因子
-        u_t = np.zeros_like(X)
-        for (m, n, Cmn, k_mn) in coeff_list:
-            term = Cmn * np.sin(m * np.pi * X / a) * np.sin(n * np.pi * Y / b) * np.sinh(k_mn * Z) * (1 - np.exp(-t))
-            u_t += term
-        slice_zc_t = u_t[:, :, -1]
-        im.set_data(slice_zc_t.T)
-        ax.set_title(f'3D Laplace Equation (z=c, Convergence: {frame}/10)')
-        return im,
+    # Slice at z=c (top boundary)
+    ax1 = fig.add_subplot(131)
+    slice_zc = u[:, :, -1]
+    im1 = ax1.imshow(slice_zc.T, extent=[0, a, 0, b], origin='lower', cmap='viridis')
+    ax1.set_title(f'Slice at z={c}')
+    ax1.set_xlabel('x (m)')
+    ax1.set_ylabel('y (m)')
+    plt.colorbar(im1, ax=ax1)
 
-    ani = FuncAnimation(fig, update, frames=10, interval=800, blit=False)
+    # Slice at y=b/2 (middle y)
+    ax2 = fig.add_subplot(132)
+    slice_yhalf = u[:, Ny // 2, :]
+    im2 = ax2.imshow(slice_yhalf.T, extent=[0, a, 0, c], origin='lower', cmap='viridis')
+    ax2.set_title(f'Slice at y={b / 2}')
+    ax2.set_xlabel('x (m)')
+    ax2.set_ylabel('z (m)')
+    plt.colorbar(im2, ax=ax2)
+
+    # Slice at x=a/2 (middle x)
+    ax3 = fig.add_subplot(133)
+    slice_xhalf = u[Nx // 2, :, :]
+    im3 = ax3.imshow(slice_xhalf.T, extent=[0, b, 0, c], origin='lower', cmap='viridis')
+    ax3.set_title(f'Slice at x={a / 2}')
+    ax3.set_xlabel('y (m)')
+    ax3.set_ylabel('z (m)')
+    plt.colorbar(im3, ax=ax3)
+
     plt.tight_layout()
     plt.show()
 
     # ===================== 6. Validation =====================
-    u_zc = u_steady[:, :, -1]
+    u_zc = u[:, :, -1]
     u_zc_theory = np.sin(np.pi * X / a) * np.sin(np.pi * Y / b)
     error = np.max(np.abs(u_zc - u_zc_theory))
     print(f"\nTop boundary (z=c) error: {error:.6f}")
     print(
-        f"Boundary checks: x=0/a: {u_steady[0, :, :].max():.6f}/{u_steady[-1, :, :].max():.6f}, y=0/b: {u_steady[:, 0, :].max():.6f}/{u_steady[:, -1, :].max():.6f}, z=0: {u_steady[:, :, 0].max():.6f}")
+        f"Boundary checks: x=0/a: {u[0, :, :].max():.6f}/{u[-1, :, :].max():.6f}, y=0/b: {u[:, 0, :].max():.6f}/{u[:, -1, :].max():.6f}, z=0: {u[:, :, 0].max():.6f}")
 
 
-# 测试调用
-if __name__ == "__main__":
-
-      task3_3d()
+# 运行示例
+task4_2d()

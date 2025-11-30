@@ -1,3 +1,4 @@
+import jieba
 import sklearn
 from sympy.physics.quantum.matrixutils import sparse
 
@@ -62,4 +63,70 @@ def dir_catch():
     feat=sklearn.feature_extraction.DictVectorizer(sparse=False)
 
 
-dir_catch()
+
+#字符串文本的特征提取
+def test_catch():
+
+    #特征，每一个单词记一个数字。相同的单词累加,一个字母不算
+    #英文
+    s=["life is is a flower"]
+    tran=sklearn.feature_extraction.text.CountVectorizer()
+
+    data1=tran.fit_transform(s)
+
+    print(data1.toarray())       #sparse矩阵转化为一般二维数组，统计特征词出现个数
+
+    #中文
+    #需要进行分词处理，单个字符无法转化
+    c=["生活 是 一朵花 一朵花 生活"]
+
+    data2=tran.fit_transform(c)
+    print("data2",data2)
+
+
+    data3=tran.fit_transform(s)
+
+    print(tran.get_feature_names_out()) #根据最后一次fit_transform进行转化
+
+
+    #停用词的使用
+    #is不会被记录
+    tran1=sklearn.feature_extraction.text.CountVectorizer(stop_words=['is'])
+    data4=tran1.fit_transform(s)
+    print(data4.toarray())
+    print(tran1.get_feature_names_out())
+
+
+#中文文本的分词实现
+def count_chinese():
+
+    #运用jieba库进行分词处理
+    p=["数据挖掘是指从大量数据中发现有价值的隐藏模式、发现规律和发现知识的过程"]
+
+    cut=list(jieba.cut(p[0]))   #需要将jieba对象进行强转,得到有字符串组成的数列
+    print(cut)
+
+    text=" ".join(cut)          #进行合并操作,得到空格分开的字符串
+    print(text)
+    tran=sklearn.feature_extraction.text.CountVectorizer()
+    data1=tran.fit_transform([text])
+    print(data1.toarray())
+    print(tran.get_feature_names_out())
+
+
+#用tf_idf进行处理  评估关键词
+def ti_idf():
+
+    p = ["数据挖掘是指从大量数据中发现有价值的隐藏模式、规律和知识的过程"]
+
+    cut = list(jieba.cut(p[0]))
+    print(cut)
+
+    text = " ".join(cut)
+    print(text)
+    tran = sklearn.feature_extraction.text.TfidfVectorizer()        #得到相当于权重信息
+    data1 = tran.fit_transform([text])
+    print(data1.toarray())
+    print(tran.get_feature_names_out())
+
+ti_idf()
