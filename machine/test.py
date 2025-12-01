@@ -1,7 +1,11 @@
 import jieba
 import sklearn
+from scipy.stats import pearsonr
+from sympy.physics.control.control_plots import matplotlib
 from sympy.physics.quantum.matrixutils import sparse
+import pandas as pd #读取文件
 
+import matplotlib.pyplot as plt
 
 #数据集获取
 def start():
@@ -117,7 +121,7 @@ def count_chinese():
 #用tf_idf进行处理  评估关键词
 def ti_idf():
 
-    p = ["数据挖掘是指从大量数据中发现有价值的隐藏模式、规律和知识的过程"]
+    p = ["数据挖掘是指从大量数据中发现有价值的隐藏模式、规律知识，知识和知识的过程"]
 
     cut = list(jieba.cut(p[0]))
     print(cut)
@@ -129,4 +133,52 @@ def ti_idf():
     print(data1.toarray())
     print(tran.get_feature_names_out())
 
-ti_idf()
+
+#无量纲化处理
+#数据的归一化以及标准化
+def minmax():
+    #获取数据
+    #实例化转换器
+
+    data=pd.read_csv("text.txt")
+
+    data_get=data.iloc[:,:3]
+       #iloc对文本数据进行相数组一样的处理
+
+    trans=sklearn.preprocessing.MinMaxScaler()      #归一化转换器，以最值来处理
+    trans1=sklearn.preprocessing.StandardScaler()   #标准化转换器，以正态分布处理(不易受到异常处理，更稳定，鲁棒性强)
+
+    data_new=trans.fit_transform(data_get)
+    data_new1=trans1.fit_transform(data_get)
+    print("minmax",data_new)
+    print("stand",data_new1)
+
+
+#降维学习
+#低方差过滤
+def variance():
+    data=pd.read_csv("data1.txt")
+    data_get=data.iloc[:,1:-2]
+
+
+    tran=sklearn.feature_selection.VarianceThreshold(threshold=5)
+    data_new=tran.fit_transform(data_get)
+    print(data_new)
+
+def relation():
+    data=pd.read_csv("data1.txt")
+    data_get=data.iloc[:,1:3]
+    data1=data.iloc[:,1:2]
+    data2=data.iloc[:,2:3]
+
+    r=pearsonr(data["pe_ratio"],data["pb_ratio"])   #传入连续数据进行相关系数的判断，越小越不相关
+
+
+    print(r)
+
+    plt.scatter(data["pe_ratio"],data["pb_ratio"],color="red")      #散点图绘制，发现不是很线性
+    plt.xlabel("pe_ratio")
+    plt.ylabel("pb_ratio")
+    plt.show()
+
+relation()

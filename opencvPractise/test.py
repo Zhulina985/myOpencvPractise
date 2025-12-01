@@ -701,4 +701,4 @@ def face_video():
     video_detect.release()
     cv.destroyAllWindows()
 
-face_video()
+face()
