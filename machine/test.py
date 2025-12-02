@@ -1,3 +1,7 @@
+from heapq import merge
+from importlib.resources import files
+from os import write
+
 import jieba
 import sklearn
 from scipy.stats import pearsonr
@@ -165,6 +169,7 @@ def variance():
     data_new=tran.fit_transform(data_get)
     print(data_new)
 
+#求线性相关系数
 def relation():
     data=pd.read_csv("data1.txt")
     data_get=data.iloc[:,1:3]
@@ -181,4 +186,55 @@ def relation():
     plt.ylabel("pb_ratio")
     plt.show()
 
-relation()
+#主成分分析
+#降维的同时保留更多的原信息
+def PCA_demo():
+    data=[[1,2,3],[5,3,2],[8,3,5]]
+    tran=sklearn.decomposition.PCA(n_components=0.98)    #参数为整数，为保护的个数，小数时，保留的百分比
+    data_new=tran.fit_transform(data)
+
+    print(data_new)
+
+
+#案例分析
+#market basket analyse
+#目标:合并表格数据，对数据进行降维处理
+#总结步骤:读取表格,合并表格,生成交叉表格,PCA处理数据
+def case():
+
+    #找到use_id和aisle_id的关系
+    #交叉表的绘制
+    data=pd.read_csv("resource/table_final.csv")
+    table=pd.crosstab(data["user_id"],data["aisle"])        #这里得到(206209,134)的数组
+
+    #降维处理
+
+    tran=sklearn.decomposition.PCA(n_components=0.95)      #PCA处理后得到(206209,44)的数组,去除了很多无关部分
+    new_data=tran.fit_transform(table)
+
+    print(new_data)
+    print(new_data.shape)
+
+
+#读取,合并表阶段,直接保存到本地,后续省去读取部分
+def front_read():
+    # 读取数据
+
+    data_other_product = pd.read_csv("resource/order_products__prior.csv")
+    data_product = pd.read_csv("resource/products.csv")
+    data_others = pd.read_csv("resource/orders.csv")
+    data_aisles = pd.read_csv("resource/aisles.csv")
+
+    # 合并数据
+    # 将product_id (在other_product和product) 与 aisles_id(在aisles,product)进行合并
+
+    tabel_aisles = pd.merge(data_aisles, data_product, on=["aisle_id", "aisle_id"])
+
+    table_product_aisles = pd.merge(tabel_aisles, data_other_product, on=["product_id", "product_id"])
+
+    table_final = pd.merge(table_product_aisles, data_others, on=["order_id", "order_id"])
+    # 合并得到最终的表格
+    table_final.to_csv("resource/table_final.csv", index=False)
+
+
+case()
