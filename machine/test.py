@@ -34,8 +34,8 @@ def iris_use():
     print("数据集描述：\n",iris["DESCR"])
 
     #训练集合测试集的划分
-    #参数说明：特征值，标签值，测试集大小，随机种子(采样结果)
-    #返回：特征值(训练，测试)，目标值(训练，测试)
+    #参数说明：特征值，目标值，测试集大小，随机种子(采样结果)
+    #返回：特征值(用于训练，测试)，目标值(用于训练，测试)
     x_train,x_test,y_train,y_test=sklearn.model_selection.train_test_split(iris.data, iris.target,test_size=0.2,random_state=22)
 
     print("x_train\n",x_train)
@@ -234,7 +234,57 @@ def front_read():
 
     table_final = pd.merge(table_product_aisles, data_others, on=["order_id", "order_id"])
     # 合并得到最终的表格
+
+    #保存到本地
     table_final.to_csv("resource/table_final.csv", index=False)
 
 
-case()
+
+
+#算法分类
+#KNN算法实例
+#鸢尾花数据集分类
+def knn_iris():
+
+    #1.获取数据
+
+    iris=sklearn.datasets.load_iris()
+
+    #2.划分数据集
+    #特征值和目标值
+    x_train,x_test,y_train,y_test=sklearn.model_selection.train_test_split(iris.data,iris.target)
+
+    #3.标准化处理
+    tran=sklearn.preprocessing.StandardScaler()
+    x_train_st=tran.fit_transform(x_train)
+    x_test_st=tran.transform(x_test)      #这里直接用transform,是保证对训练集和测试集进行相同的操作
+
+    #4.KNN算法训练模型
+    estimator=sklearn.neighbors.KNeighborsClassifier()
+
+    # 加入网格搜索
+    estimator=sklearn.model_selection.GridSearchCV(estimator,param_grid={"n_neighbors":[1,2,3,4,5,6,7,8,9,10]},cv=10)
+
+
+
+
+
+    estimator.fit(x_train_st,y_train)       #得到模型estimator
+
+
+    #5.模型评估
+    #通过传入测试集数据来获得预测数据集
+    predicted=estimator.predict(x_test_st)
+    print("直接比对",predicted)
+    print("是否相等",y_test==predicted)
+    score=estimator.score(x_test_st,y_test)     #准确率计算,相当于传入真实值(测试与目标)与模型本身进行比较,计算得出的结果 (整体的结果)
+    print("准确率",score)
+
+    print("最佳参数",estimator.best_params_)      #训练集内部的结果
+    print("最佳结果",estimator.best_score_)
+
+
+
+
+
+knn_iris()
