@@ -262,11 +262,8 @@ def knn_iris():
     #4.KNN算法训练模型
     estimator=sklearn.neighbors.KNeighborsClassifier()
 
-    # 加入网格搜索
+    # 加入网格搜索(参数:预估器，n值的可能值,折叠次数)
     estimator=sklearn.model_selection.GridSearchCV(estimator,param_grid={"n_neighbors":[1,2,3,4,5,6,7,8,9,10]},cv=10)
-
-
-
 
 
     estimator.fit(x_train_st,y_train)       #得到模型estimator
@@ -286,5 +283,46 @@ def knn_iris():
 
 
 
+#facebook签到案例
+#签到位置的预测
+def case_facebook():
 
-knn_iris()
+    #读取数据
+    data=pd.read_csv("resource/facebook.csv")
+
+    #对数据的特征值和目标值进行确定
+
+    x=data[["x","y","accuracy","time"]]
+    y=data["place_id"]
+
+    #进行划分
+    x_train,x_test,y_train,y_test=sklearn.model_selection.train_test_split(x,y)
+
+
+    #标准化处理
+    tran=sklearn.preprocessing.StandardScaler()
+    x_train_st=tran.fit_transform(x_train)
+    x_test_st=tran.transform(x_test)
+
+    #生成预测器
+    es=sklearn.neighbors.KNeighborsClassifier()
+    es=sklearn.model_selection.GridSearchCV(es,param_grid={"n_neighbors":[1,2,3,4,5,6,7,8,9,10]},cv=10)
+
+    es.fit(x_train_st,y_train)
+    predicted=es.predict(x_test_st)
+
+    print(es.best_params_)
+
+    print(predicted==y_test)
+
+    print(es.score(x_test_st,y_test))
+
+
+
+case_facebook()
+
+
+
+
+
+
