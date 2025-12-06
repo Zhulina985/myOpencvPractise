@@ -509,6 +509,8 @@ def sift():
     # 绘制关键点:原始图像，关键点，输出图像,颜色(默认多色),flag:绘图的表示功能(绘制样式)
     cv.drawKeypoints(img,kp,img,flags=cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
+
+
     plt.figure(figsize=(10, 8), dpi=80)
     plt.imshow(img[:,:,::-1])
     plt.show()
