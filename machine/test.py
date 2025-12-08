@@ -1,3 +1,5 @@
+import os
+import tarfile
 from heapq import merge
 from importlib.resources import files
 from os import write
@@ -10,6 +12,9 @@ from sympy.physics.quantum.matrixutils import sparse
 import pandas as pd #读取文件
 
 import matplotlib.pyplot as plt
+
+from machine.fruit import x_train
+
 
 #数据集获取
 def start():
@@ -318,8 +323,44 @@ def case_facebook():
     print(es.score(x_test_st,y_test))
 
 
+#朴素贝叶斯的学习
+#对新闻进行分类
+#运用sklearn自带数据集
+def bayes_iris():
 
-case_facebook()
+    print(1)
+
+
+
+    #1.获取数据(数据集较大，运用fetch)
+    data_news=sklearn.datasets.fetch_20newsgroups()
+
+    print(data_news)
+
+    #2.划分数据集
+
+    x_train,x_test,y_train,y_test=sklearn.model_selection.train_test_split(data_news.data,data_news.target)
+
+    #3.进行特征抽取,返回sparse矩阵
+
+    transfer=sklearn.feature_extraction.text.CountVectorizer()
+
+    x_train=transfer.fit_transform(x_train)
+    x_test=transfer.transform(x_test)
+
+    #4.引入朴素贝叶斯算法
+
+    estimator=sklearn.naive_bayes.MultinomialNB(alpha=1.0)  #拉普拉斯平滑系数
+
+    estimator.fit(x_train,y_train)
+    predicted=estimator.predict(x_test)
+    print(predicted==y_test)
+    print(predicted)
+
+    mark=estimator.score(x_test,y_test)
+    print(mark)
+
+bayes_iris()
 
 
 
